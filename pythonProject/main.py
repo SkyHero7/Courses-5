@@ -2,9 +2,9 @@ from db_manager import DBManager
 from hh_api import get_vacancies_from_hh, get_vacancies_with_keyword_from_hh
 
 if __name__ == "__main__":
-    dbname = 'your_db_name'
-    user = 'your_username'
-    password = 'your_password'
+    dbname = input("Введите имя базы данных: ")
+    user = input("Введите имя пользователя: ")
+    password = input("Введите пароль: ")
 
     db_manager = DBManager(dbname=dbname, user=user, password=password)
 
@@ -21,9 +21,9 @@ if __name__ == "__main__":
                 company_name = vacancy.get('employer', {}).get('name', 'Unknown')
                 title = vacancy.get('name', 'Unknown')
                 if vacancy and vacancy.get('salary'):
-                    salary = vacancy['salary'].get('from', 'Не указана')
+                    salary = vacancy['salary'].get('from')
                 else:
-                    salary = 'Не указана'
+                    salary = None
                 link = vacancy.get('alternate_url', 'Нет ссылки')
 
                 print(
@@ -47,10 +47,7 @@ if __name__ == "__main__":
             for vacancy in vacancies:
                 company_name = vacancy.get('employer', {}).get('name', 'Unknown')
                 title = vacancy.get('name', 'Unknown')
-                if vacancy and vacancy.get('salary'):
-                    salary = vacancy['salary'].get('from', 'Не указана')
-                else:
-                    salary = 'Не указана'
+                salary = vacancy.get('salary', {}).get('from', 'Не указана')
                 link = vacancy.get('alternate_url', 'Нет ссылки')
 
                 print(
