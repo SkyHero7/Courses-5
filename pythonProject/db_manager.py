@@ -1,20 +1,9 @@
 import psycopg2
 from psycopg2 import sql
 
-class DBManager:
-    """
-      Класс для управления операциями с базой данных.
-      """
-    def __init__(self, dbname='north', user='postgres', password='1234', host='localhost', port=5432):
-        """
-                Инициализирует объект DBManager с параметрами соединения.
 
-                :param dbname: str, название базы данных.
-                :param user: str, имя пользователя для доступа к базе данных.
-                :param password: str, пароль для доступа к базе данных.
-                :param host: str, имя хоста сервера базы данных.
-                :param port: int, номер порта сервера базы данных.
-                """
+class DBManager:
+    def __init__(self, dbname='north', user='postgres', password='1234', host='localhost', port=5432):
         self.conn = psycopg2.connect(
             dbname=dbname,
             user=user,
@@ -26,8 +15,6 @@ class DBManager:
         self.create_tables()
 
     def create_tables(self):
-        """Создает таблицы базы данных, если они не существуют."""
-
         create_companies_table = """
         CREATE TABLE IF NOT EXISTS companies (
             company_id SERIAL PRIMARY KEY,
@@ -50,25 +37,11 @@ class DBManager:
         self.conn.commit()
 
     def insert_company(self, name, description=None):
-        """
-        Вставляет новую компанию в таблицу companies.
-
-        :param name: str, название компании.
-        :param description: str, необязательное описание компании.
-        """
         insert_query = sql.SQL("INSERT INTO companies (name, description) VALUES (%s, %s)")
         self.cursor.execute(insert_query, (name, description))
         self.conn.commit()
 
     def insert_vacancy(self, company_id, title, salary=None, link=None):
-        """
-        Вставляет новую вакансию в таблицу vacancies.
-
-        :param company_id: int, ID компании, связанной с вакансией.
-        :param title: str, заголовок вакансии.
-        :param salary: float, необязательная зарплата для вакансии.
-        :param link: str, необязательная ссылка на вакансию.
-        """
         query = "SELECT * FROM vacancies WHERE title = %s AND company_id = %s"
         self.cursor.execute(query, (title, company_id))
         existing_vacancy = self.cursor.fetchone()
@@ -102,3 +75,31 @@ class DBManager:
     def close_connection(self):
         self.cursor.close()
         self.conn.close()
+
+    def get_companies_and_vacancies_count(self):
+        """
+        Получает список всех компаний и количество вакансий у каждой компании.
+
+        :return: list, список кортежей вида (название компании, количество вакансий)
+        """
+        query = """
+        SELECT companies.name, COUNT(vacancies.company_id) AS vacancies_count
+        FROM companies
+        LEFT JOIN vacancies ON companies.company_id = vacancies.company_id
+        GROUP BY companies.name;
+        """
+        self.cursor.execute(query)
+        return self.cursor.fetchall()
+
+    def get_vacancies_with_keyword(self, keyword):
+        """
+        Получает список всех вакансий, в названии которых содержатся переданные в метод слова.
+
+        :param keyword: str, ключевое слово для поиска вакансий.
+        :return: list, список вакансий.
+        """
+        query = "SELECT * FROM vacancies WHERE title ILIKE %s"
+        self.cursor.execute(query, ('%' + keyword + '%',))
+        columns = [desc[0] for desc in self.cursor.description]
+        vacancies = [dict(zip(columns, row)) for row in self.cursor.fetchall()]
+        return vacancies

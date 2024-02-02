@@ -1,6 +1,13 @@
 import requests
 
+
 def get_vacancies_from_hh(company_name):
+    """
+    Получает список вакансий с сайта HeadHunter по названию компании.
+
+    :param company_name: str, название компании для поиска вакансий.
+    :return: list, список вакансий.
+    """
     url = "https://api.hh.ru/vacancies"
     params = {
         'text': f'компания:{company_name}',
@@ -14,7 +21,14 @@ def get_vacancies_from_hh(company_name):
         print(f"Failed to retrieve vacancies for {company_name}. Status code: {response.status_code}")
         return []
 
+
 def get_vacancies_with_keyword_from_hh(keyword):
+    """
+    Получает список вакансий с сайта HeadHunter по ключевому слову.
+
+    :param keyword: str, ключевое слово для поиска вакансий.
+    :return: list, список вакансий.
+    """
     url = "https://api.hh.ru/vacancies"
     params = {
         'text': keyword,
